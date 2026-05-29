@@ -122,7 +122,7 @@ All simulations use `seed = 1000 + sim_index` (Julia) and `idx` (LensIt, 0-index
 
 ### QE RDN0
 
-The QE realisation-dependent N0 is computed via `N0_bias`, developed by Louis Legrand as part of [this CMBLensing.jl fork](https://github.com/louisl3grand/CMBLensing.jl/blob/master/RDN0_bias_QE.ipynb). It uses the standard DD–DS–SD+SS combination to achieve O(ε²) bias in per-realisation power mismatch.
+The QE realisation-dependent N0 is computed via `N0_bias`, developed as part of [this CMBLensing.jl fork](https://github.com/louisl3grand/CMBLensing.jl/blob/master/RDN0_bias_QE.ipynb). It uses the standard DD–DS–SD+SS combination to achieve O(ε²) bias in per-realisation power mismatch.
 
 ### GI N0 methods
 
