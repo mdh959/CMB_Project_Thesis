@@ -88,6 +88,8 @@ pip install git+https://github.com/carronj/LensIt
 
 Runs 100 QE/GI sims and up to 500 MAP sims. Resumes from checkpoint if interrupted.
 
+> **Runtime:** expect O(days) on a single machine. Steps 2–4 all require the `.jld2` output from this step and will crash if it is missing.
+
 ```bash
 julia run_comparison_12k.jl
 ```
