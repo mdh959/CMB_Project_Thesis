@@ -168,4 +168,4 @@ Lewis, A., Challinor, A., and Lasenby, A. (2000), *Efficient Normal Form Decompo
 
 ## AI use declaration
 
-The AI assistant Claude was used during the development of this codebase to assist with code editing, debugging, and documentation. All research design, scientific methodology, algorithm implementation, and analysis are the author's own work. No AI tool was used to generate scientific results or conclusions.
+The AI assistant Claude was used during the development of this codebase to assist with code editing, debugging, and documentation.
