@@ -2,7 +2,7 @@ using CMBLensing: Map, m_rfft, m_irfft, FlatMap, LowPass, HighPass, simulate, ge
 using Statistics: mean
 using Random: MersenneTwister
 
-export gi_estimate, gi_estimate_ref, gi_estimate_corrected,
+export gi_estimate, gi_full,
        gi_twoleg, compute_sigma_fid,
        gi_n0_fixed_gradient_mc, gi_n0_mc, gi_n0_rdn0,
        gi_n0_linrd_analytical, gi_n0_linrd_analyticbaseline
@@ -65,146 +65,7 @@ end
 
 
 """
-    gi_twoleg(ds_grad, ds_hp; Lgrad=2000, Lhp=4000, Lmax=18000)
-
-Two-leg GI estimator: gradient from `ds_grad`, high-pass map from `ds_hp`.
-Used to form the RDN0 combinations DS, SD, SS.
-"""
-function gi_twoleg(ds_grad, ds_hp; σ_fid=nothing, Lgrad=2000, Lhp=4000, Lmax=18000,
-                   denom_floor_frac=1e-8)
-
-    proj = Map(ds_grad.d).proj
-
-    dTdx, dTdy, _ = grad_fft(Map(LowPass(Lgrad) * ds_grad.d))
-
-    if σ_fid !== nothing
-        σ_xx, σ_xy, σ_yy = σ_fid.σ_xx, σ_fid.σ_xy, σ_fid.σ_yy
-    else
-        σ_xx = mean(dTdx .^ 2)
-        σ_xy = mean(dTdx .* dTdy)
-        σ_yy = mean(dTdy .^ 2)
-    end
-
-    T_hp = Map(HighPass(Lhp) * ds_hp.d).arr
-
-    A_F = m_rfft(dTdx .* T_hp, (1,2))
-    B_F = m_rfft(dTdy .* T_hp, (1,2))
-
-    NyF, NxF = size(A_F)
-    ℓx2D = repeat(proj.ℓx[1:NxF]', NyF, 1)
-    ℓy2D = repeat(proj.ℓy[1:NyF],  1,   NxF)
-    L2   = @. ℓx2D^2 + ℓy2D^2
-
-    numer = @. -im * (ℓx2D * A_F + ℓy2D * B_F)
-    denom = @. ℓx2D^2 * σ_xx + 2*ℓx2D*ℓy2D * σ_xy + ℓy2D^2 * σ_yy
-
-    denom_thresh_2D = @. denom_floor_frac * L2 * max(σ_xx, σ_yy)
-    L_mask = @. (L2 > Lhp^2) & (L2 < Lmax^2)
-    φ_F = @. ifelse(L_mask & (abs(denom) > denom_thresh_2D),
-                    numer / denom, complex(0.0))
-
-    return FlatFourier(φ_F, proj)
-end
-
-
-"""
-    gi_estimate_wiener_fast(ds; Lgrad=2000, Lhp=4000, Lmax=12000, N_abins=12, N_rbins=8)
-
-Fast binned approximation to the per-pixel Wiener GI estimator (Hadzhiyska+2019, eq. 29).
-Groups modes into N_abins×N_rbins bins; takes one FFT per bin instead of one FFT per mode,
-giving a ~400–700× speedup with <5% error in W_L.
-
-For each (angle,radial) bin centred at (Lx_c, Ly_c):
-  gprod(x)  = Lx_c·gx + Ly_c·gy           [per-pixel projected gradient]
-  W(x)      = Cϕ_c / (PS_c/gprod² + Cϕ_c) [per-pixel Wiener weight, using bin-mean PS,Cϕ]
-  φ̂(L)      = FFT[W·T_hp/gprod][L] / (mean(W)·i)   for all L in the bin
-
-The reference exact implementation is `gi_estimate_corrected`; use that for validation.
-"""
-function gi_estimate_wiener_fast(ds; Lgrad=2000, Lhp=4000, Lmax=12000,
-                                  N_abins=12, N_rbins=8, denom_floor_frac=1e-8)
-    m    = Map(ds.d)
-    proj = m.proj
-    Ny, Nx = size(m.arr)
-    NyF  = Ny ÷ 2 + 1
-
-    gx, gy, _ = grad_fft(Map(LowPass(Lgrad) * ds.d))
-    T_hp = Float64.(m.arr) .- Float64.(Map(LowPass(Lhp) * ds.d).arr)
-
-    f1     = FlatFourier(ones(ComplexF64, NyF, Nx), proj)
-    B_diag = real.(ds.B̂.diag.arr)[1:NyF, 1:Nx]
-    PS_2D  = real.((ds.Cf̃ * f1).arr)[1:NyF, 1:Nx] .+
-             real.((ds.Cn̂ * f1).arr)[1:NyF, 1:Nx] ./ max.(B_diag .^ 2, 1e-30)
-    Cϕ_2D  = real.((ds.Cϕ * f1).arr)[1:NyF, 1:Nx]
-
-    gfloor = denom_floor_frac * sqrt(mean(gx .^ 2) + mean(gy .^ 2))
-
-    ℓx_arr = Float64.(proj.ℓx[1:Nx])
-    ℓy_arr = Float64.(proj.ℓy[1:NyF])
-    ℓx2D   = repeat(ℓx_arr', NyF, 1)
-    ℓy2D   = repeat(ℓy_arr,  1,   Nx)
-    L2_2D  = ℓx2D .^ 2 .+ ℓy2D .^ 2
-    Lmag   = sqrt.(L2_2D)
-    θ_2D   = atan.(ℓy2D, ℓx2D)
-
-    φ_F = zeros(ComplexF64, NyF, Nx)
-
-    # Log-spaced radial bin edges; angular bins uniformly cover [0, π]
-    L_edges = exp.(range(log(Float64(Lhp)), log(Float64(Lmax)), N_rbins + 1))
-    θ_edges = range(0.0, Float64(π), N_abins + 1)
-
-    gp_buf = similar(gx)
-    W_buf  = similar(gx)
-    pe_buf = zeros(Float64, Ny, Nx)
-
-    for ia in 1:N_abins
-        θ_lo, θ_hi = θ_edges[ia], θ_edges[ia + 1]
-        θ_c   = 0.5 * (θ_lo + θ_hi)
-        cos_c = cos(θ_c); sin_c = sin(θ_c)
-
-        @. gp_buf = cos_c * gx + sin_c * gy
-        @. gp_buf = ifelse(abs(gp_buf) < gfloor,
-                           ifelse(gp_buf >= 0, gfloor, -gfloor), gp_buf)
-
-        for ir in 1:N_rbins
-            L_lo, L_hi = L_edges[ir], L_edges[ir + 1]
-            L_c = sqrt(L_lo * L_hi)   # geometric mean
-
-            # boundary bins absorb modes at θ=0 and θ=π
-            if ia == 1
-                bin_mask = @. (Lmag >= L_lo) & (Lmag < L_hi) & (θ_2D < θ_hi)
-            elseif ia == N_abins
-                bin_mask = @. (Lmag >= L_lo) & (Lmag < L_hi) & (θ_2D >= θ_lo)
-            else
-                bin_mask = @. (Lmag >= L_lo) & (Lmag < L_hi) &
-                              (θ_2D >= θ_lo) & (θ_2D < θ_hi)
-            end
-            !any(bin_mask) && continue
-
-            PS_c = mean(PS_2D[bin_mask])
-            Cϕ_c = mean(Cϕ_2D[bin_mask])
-            Cϕ_c <= 0 && continue
-
-            @. W_buf  = Cϕ_c * (L_c * gp_buf)^2 / max(PS_c + Cϕ_c * (L_c * gp_buf)^2, 1e-60)
-            @. pe_buf = W_buf * T_hp / (L_c * gp_buf)
-            W_mean = mean(W_buf)
-            W_mean < 1e-30 && continue
-
-            F_pe = m_rfft(pe_buf, (1, 2))
-            @inbounds for j in 1:NyF, i in 1:Nx
-                bin_mask[j, i] || continue
-                Cϕ_2D[j, i] <= 0 && continue
-                φ_F[j, i] = F_pe[j, i] / (W_mean * im)
-            end
-        end
-    end
-
-    return FlatFourier(φ_F, proj)
-end
-
-
-"""
-    gi_estimate_corrected(ds; Lgrad=2000, Lhp=4000, Lmax=20000)
+    gi_full(ds; Lgrad=2000, Lhp=4000, Lmax=20000)
 
 Pixel-exact GI estimator (Hadzhiyska+2019, eq. 29). For each output mode L, a per-pixel
 Wiener weight is applied before the FFT:
@@ -216,7 +77,7 @@ Wiener weight is applied before the FFT:
 where C_TT = B²·Cf̃ + Cn̂. This does one FFT per output mode and is much slower
 than `gi_estimate`, which uses scalar mean(gprod²) in the denominator.
 """
-function gi_estimate_corrected(ds; Lgrad=2000, Lhp=4000, Lmax=20000, denom_floor_frac=1e-8)
+function gi_full(ds; Lgrad=2000, Lhp=4000, Lmax=20000, denom_floor_frac=1e-8)
 
     m    = Map(ds.d)
     proj = m.proj
@@ -276,30 +137,30 @@ end
 
 
 """
-    gi_estimate_ref(ds)
+    gi_twoleg(ds_grad, ds_hp; Lgrad=2000, Lhp=4000, Lmax=18000)
 
-GI estimator in the original Hadzhiyska+2019 form. Uses explicit
-T_hp = T - LowPass(4000)*T subtraction, no lower-L cut, and Lmax=20000.
+Two-leg GI estimator: gradient from `ds_grad`, high-pass map from `ds_hp`.
+Used to form the RDN0 combinations DS, SD, SS.
 """
-function gi_estimate_ref(ds; denom_floor_frac=1e-8)
-    Lgrad = 2000
-    Lhp   = 4000
-    Lmax  = 20000
+function gi_twoleg(ds_grad, ds_hp; σ_fid=nothing, Lgrad=2000, Lhp=4000, Lmax=18000,
+                   denom_floor_frac=1e-8)
 
-    m    = Map(ds.d)
-    proj = m.proj
+    proj = Map(ds_grad.d).proj
 
-    dTdx, dTdy, _ = grad_fft(Map(LowPass(Lgrad) * ds.d))
+    dTdx, dTdy, _ = grad_fft(Map(LowPass(Lgrad) * ds_grad.d))
 
-    T_lp = Map(LowPass(Lhp) * ds.d).arr
-    T_hp = Map(ds.d).arr .- T_lp
+    if σ_fid !== nothing
+        σ_xx, σ_xy, σ_yy = σ_fid.σ_xx, σ_fid.σ_xy, σ_fid.σ_yy
+    else
+        σ_xx = mean(dTdx .^ 2)
+        σ_xy = mean(dTdx .* dTdy)
+        σ_yy = mean(dTdy .^ 2)
+    end
+
+    T_hp = Map(HighPass(Lhp) * ds_hp.d).arr
 
     A_F = m_rfft(dTdx .* T_hp, (1,2))
     B_F = m_rfft(dTdy .* T_hp, (1,2))
-
-    σ_xx = mean(dTdx .^ 2)
-    σ_xy = mean(dTdx .* dTdy)
-    σ_yy = mean(dTdy .^ 2)
 
     NyF, NxF = size(A_F)
     ℓx2D = repeat(proj.ℓx[1:NxF]', NyF, 1)
@@ -309,10 +170,9 @@ function gi_estimate_ref(ds; denom_floor_frac=1e-8)
     numer = @. -im * (ℓx2D * A_F + ℓy2D * B_F)
     denom = @. ℓx2D^2 * σ_xx + 2*ℓx2D*ℓy2D * σ_xy + ℓy2D^2 * σ_yy
 
-    denom_threshold = denom_floor_frac * max(σ_xx, σ_yy)
-    L_mask = @. L2 < Lmax^2
-
-    φ_F = @. ifelse(L_mask & (abs(denom) > denom_threshold),
+    denom_thresh_2D = @. denom_floor_frac * L2 * max(σ_xx, σ_yy)
+    L_mask = @. (L2 > Lhp^2) & (L2 < Lmax^2)
+    φ_F = @. ifelse(L_mask & (abs(denom) > denom_thresh_2D),
                     numer / denom, complex(0.0))
 
     return FlatFourier(φ_F, proj)

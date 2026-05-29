@@ -7,8 +7,8 @@
 #   phi_maps_map_12000{suffix}.jld2    — ϕ_true, ϕ_mj per MAP sim
 #   WL_map_12000{suffix}.jld2          — MAP W_L, logpdf histories
 #
-#   S4  (1 µK-arcmin): QE-WF warm start, αmax=0.3,  50 steps, CG nsteps=200
-#   UL (0.1 µK-arcmin): QE/GI hybrid warm start, αmax=0.05, 50 steps, CG nsteps=500
+#   S4  (1 µK-arcmin): QE-WF warm start, αmax=0.3,  40 steps, CG nsteps=200
+#   UL (0.1 µK-arcmin): zero start, αmax=0.05, 70 steps, CG nsteps=500
 
 import Pkg; Pkg.activate(@__DIR__)
 using CMBLensing, LinearAlgebra
@@ -500,7 +500,7 @@ function run_noise_level(μKarcminT::Float64, suffix::String, Lmax::Int, beamFWH
 end
 
 
-# run_gi_wiener: pixel-exact Wiener GI (gi_estimate_corrected).
+# run_gi_wiener: pixel-exact Wiener GI (gi_full).
 # Uncomment the call below to generate results; output is not loaded by plot_results.jl.
 function run_gi_wiener(μKarcminT::Float64, suffix::String;
                        nsims_w::Int=100, Lmax::Int=12000, beamFWHM::Float64=0.3,
@@ -549,7 +549,7 @@ function run_gi_wiener(μKarcminT::Float64, suffix::String;
         print("  GIW sim $s/$nsims_w (seed=$seed) ... "); flush(stdout)
         (; ϕ, ds) = load_sim(; seed=seed, lkw...)
 
-        ϕgiw = gi_estimate_corrected(ds; Lhp=4000, Lmax=Lmax)
+        ϕgiw = gi_full(ds; Lhp=4000, Lmax=Lmax)
 
         cl_tt  = get_Cℓ(ϕ;      Δℓ=Δℓ_wl)
         cl_tgw = get_Cℓ(ϕ, ϕgiw; Δℓ=Δℓ_wl)
@@ -579,12 +579,14 @@ end
 # run_gi_wiener(0.1, "_ul")   # uncomment to run pixel-exact GI (slow)
 
 # S4-like: 1 µK-arcmin, 1' beam
-run_noise_level(1.0, "", 12000, 1.0;
+run_noise_level(1.0, "_s4", 12000, 1.0;
                 run_rdn0=true, run_map=true,
                 map_nsteps=40, map_αmax=0.3,
                 map_cg_nsteps=200, map_nsims=500)
 
 # Ultra-low noise: 0.1 µK-arcmin, 0.3' beam
+# Zero start (no warm start) and longer burnin needed at UL: the QE warm start
+# overshoots at low noise, so αmax and map_nburnin_hessian are set conservatively.
 run_noise_level(0.1, "_ul", 12000, 0.3;
                 Δℓ_wl=150,
                 run_rdn0=false,
@@ -594,7 +596,7 @@ run_noise_level(0.1, "_ul", 12000, 0.3;
                 map_αmax=0.05,
                 map_nburnin_hessian=typemax(Int),
                 map_nsteps=70,
-                map_nsims=500, map_extra_exclude=Set{Int}([100,102]))
+                map_nsims=500)
 
 println("\nAll done.")
 

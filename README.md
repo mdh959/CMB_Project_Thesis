@@ -2,11 +2,15 @@
 
 Masters thesis code — Cambridge Part III Physics 2025/26.
 
-Compares three CMB lensing reconstruction methods at ultra-low noise (0.1 µK-arcmin, 0.3' beam, L_max = 12000):
+Compares three CMB lensing reconstruction methods across two noise regimes (L_max = 12000, 512×512 flat-sky patch):
 
 - **Quadratic Estimator (QE)** — standard harmonic-space minimum-variance estimator
 - **Gradient Inversion (GI)** — real-space estimator based on Hadzhiyska et al. (2019)
 - **Joint MAP** — iterative maximum-a-posteriori reconstruction via `MAP_joint` in [CMBLensing.jl](https://github.com/marius311/CMBLensing.jl)
+
+Survey configurations:
+- **S4-like**: 1.0 µK-arcmin noise, 1.0' beam
+- **Ultra-low noise (UL)**: 0.1 µK-arcmin noise, 0.3' beam
 
 An independent cross-check uses [LensIt](https://github.com/carronj/LensIt) (Python) for QE and MAP on the same simulations.
 
@@ -16,7 +20,8 @@ An independent cross-check uses [LensIt](https://github.com/carronj/LensIt) (Pyt
 
 ```
 ├── run_qe_gi_wl12k.jl          main simulation pipeline (QE / GI / MAP, 500+ sims)
-├── run_lensit_ul.py             LensIt external QE+MAP comparison
+├── run_lensit_s4.py             LensIt QE+MAP comparison — S4-like
+├── run_lensit_ul.py             LensIt QE+MAP comparison — ultra-low noise
 ├── export_julia_cls.jl          export CAMB Cls to .npz for LensIt
 ├── fig1_reconstruction_maps.jl  Fig. 1 — κ reconstruction maps
 ├── plot_results.jl              all paper figures and SNR table
@@ -88,6 +93,14 @@ julia run_qe_gi_wl12k.jl
 ```
 
 Output files written to `results/` (not committed; ~GB per noise level):
+
+S4-like:
+- `phi_maps_qe_gi_12000_s4.jld2` — per-sim ϕ_true, ϕ_QE, ϕ_GI
+- `WL_qe_gi_12000_s4.jld2` — QE and GI transfer functions W_L
+- `phi_maps_map_12000_s4.jld2` — per-sim ϕ_MAP
+- `WL_map_12000_s4.jld2` — MAP transfer function and logpdf histories
+
+Ultra-low noise:
 - `phi_maps_qe_gi_12000_ul.jld2` — per-sim ϕ_true, ϕ_QE, ϕ_GI
 - `WL_qe_gi_12000_ul.jld2` — QE and GI transfer functions W_L
 - `phi_maps_map_12000_ul_zero_a01.jld2` — per-sim ϕ_MAP
@@ -102,7 +115,8 @@ julia export_julia_cls.jl
 ### Step 3 — LensIt QE + MAP comparison (Python)
 
 ```bash
-conda run -n lensit python run_lensit_ul.py
+conda run -n lensit python run_lensit_s4.py   # S4-like
+conda run -n lensit python run_lensit_ul.py   # ultra-low noise
 ```
 
 ### Step 4 — Figures
