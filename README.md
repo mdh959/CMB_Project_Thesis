@@ -154,6 +154,12 @@ The fg-MC and lin-RD estimates are used together as the primary debiasing strate
 
 ---
 
-## Reference
+## References
 
-Hadzhiyska, B., Sherwin, B. D., Madhavacheril, M., and Ferraro, S. (2019), *Improving small-scale CMB lensing reconstruction*, Phys. Rev. D **100**, 023547. [doi:10.1103/PhysRevD.100.023547](https://link.aps.org/doi/10.1103/PhysRevD.100.023547) — gradient-inversion estimator, normalisation, and survey parameters used in this work.
+Hadzhiyska, B., Sherwin, B. D., Madhavacheril, M., and Ferraro, S. (2019), *Improving small-scale CMB lensing reconstruction*, Phys. Rev. D **100**, 023547. [doi:10.1103/PhysRevD.100.023547](https://link.aps.org/doi/10.1103/PhysRevD.100.023547) — gradient-inversion estimator, normalisation, and survey parameters.
+
+Carron, J. and Lewis, A. (2017), *Maximum a posteriori CMB lensing reconstruction*, Phys. Rev. D **96**, 063510. [doi:10.1103/PhysRevD.96.063510](https://link.aps.org/doi/10.1103/PhysRevD.96.063510) — iterative MAP lensing reconstruction algorithm implemented in LensIt.
+
+Millea, M., Anderes, E., and Wandelt, B. D. (2020), *Bayesian delensing of CMB temperature and polarization*, Phys. Rev. D **102**, 123542. [doi:10.1103/PhysRevD.102.123542](https://link.aps.org/doi/10.1103/PhysRevD.102.123542) — joint MAP algorithm implemented in CMBLensing.jl.
+
+Lewis, A., Challinor, A., and Lasenby, A. (2000), *Efficient Normal Form Decomposition of General Inflationary Perturbations*, ApJ **538**, 473. [doi:10.1086/309179](https://doi.org/10.1086/309179) — CAMB power spectrum code used to generate input Cℓ's.
