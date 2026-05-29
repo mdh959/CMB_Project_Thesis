@@ -1,5 +1,5 @@
 #!/usr/bin/env julia
-# run_qe_gi_wl12k.jl
+# run_comparison_12k.jl
 #
 # QE / GI / MAP joint pipeline.  Output files (per noise level):
 #   phi_maps_qe_gi_12000{suffix}.jld2  — ϕ_true, ϕ_qe_raw, ϕ_gi_b, N0_* per sim

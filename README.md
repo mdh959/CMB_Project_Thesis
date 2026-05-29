@@ -19,11 +19,11 @@ An independent cross-check uses [LensIt](https://github.com/carronj/LensIt) (Pyt
 ## Repository structure
 
 ```
-├── run_qe_gi_wl12k.jl          main simulation pipeline (QE / GI / MAP, 500+ sims)
+├── run_comparison_12k.jl        main simulation pipeline (QE / GI / MAP, 500+ sims)
 ├── run_lensit_s4.py             LensIt QE+MAP comparison — S4-like
 ├── run_lensit_ul.py             LensIt QE+MAP comparison — ultra-low noise
 ├── export_julia_cls.jl          export CAMB Cls to .npz for LensIt
-├── fig1_reconstruction_maps.jl  Fig. 1 — κ reconstruction maps
+├── kappa_reconstruction_maps.jl κ reconstruction maps figure
 ├── plot_results.jl              all paper figures and SNR table
 ├── utils.jl                     module wrapper for Functions/
 ├── Functions/
@@ -89,7 +89,7 @@ pip install git+https://github.com/carronj/LensIt
 Runs 100 QE/GI sims and up to 500 MAP sims. Resumes from checkpoint if interrupted.
 
 ```bash
-julia run_qe_gi_wl12k.jl
+julia run_comparison_12k.jl
 ```
 
 Output files written to `results/` (not committed; ~GB per noise level):
@@ -122,7 +122,7 @@ conda run -n lensit python run_lensit_ul.py   # ultra-low noise
 ### Step 4 — Figures
 
 ```bash
-julia fig1_reconstruction_maps.jl   # Fig. 1 — κ maps
+julia kappa_reconstruction_maps.jl  # κ reconstruction maps
 julia plot_results.jl               # all other paper figures
 ```
 
@@ -149,7 +149,7 @@ The fg-MC and lin-RD estimates are used together as the primary debiasing strate
 
 ### CMBLensing.jl preconditioner patch
 
-`run_qe_gi_wl12k.jl` patches `Hessian_logpdf_preconditioner` at runtime (via `@eval CMBLensing`) to use the lensed power spectrum C_ℓ̃ instead of the unlensed C_ℓ. This reduces CG iterations at low noise without modifying the source.
+`run_comparison_12k.jl` patches `Hessian_logpdf_preconditioner` at runtime (via `@eval CMBLensing`) to use the lensed power spectrum C_ℓ̃ instead of the unlensed C_ℓ. This reduces CG iterations at low noise without modifying the source.
 
 ---
 
@@ -157,7 +157,7 @@ The fg-MC and lin-RD estimates are used together as the primary debiasing strate
 
 | File | Description |
 |------|-------------|
-| `results/fig1_gi_qe_map_gradient_ul.pdf` | κ reconstruction maps — GI, QE, MAP, ∇T, true |
+| `results/kappa_maps_ul.pdf` | κ reconstruction maps — GI, QE, MAP, ∇T, true |
 | `results/fig3_sigma_panels.png` | σ(C_L) auto and cross, S4-like and UL |
 | `results/fig_WL.pdf` | Empirical transfer functions W_L |
 | `results/fig6_rho_L.pdf` | Correlation coefficient ρ_L vs L |

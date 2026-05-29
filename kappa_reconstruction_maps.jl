@@ -1,5 +1,5 @@
 #!/usr/bin/env julia
-# fig1_reconstruction_maps.jl
+# kappa_reconstruction_maps.jl
 # Five-panel figure: κ_true, κ_GI, |∇T_LP|, κ_QE, κ_MAP
 # Layout: top row (a–c), bottom row (d–e) centred.
 # Runs S4 and UL cases, saves two figures.
@@ -119,7 +119,7 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     isfile(wl_qegi_file) || (println("  SKIP: $wl_qegi_file not found"); return)
     isfile(wl_map_file)  || (println("  SKIP: $wl_map_file not found");  return)
 
-    # ── Load WL ───────────────────────────────────────────────────────────────
+    # Load WL
     println("  Loading WL files...")
     d_wl_qegi = JLD2.load(wl_qegi_file)
     d_wl_map  = JLD2.load(wl_map_file)
@@ -132,7 +132,7 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     WL_qe  = Cℓs(ell_gi,  smooth_1d(W_qe_raw))
     WL_map = Cℓs(ell_map, smooth_1d(Float64.(d_wl_map["W_mj"])))
 
-    # ── Load ϕ arrays ─────────────────────────────────────────────────────────
+    # Load ϕ arrays
     println("  Loading ϕ arrays (seed=$seed)...")
     ϕ_true_arr = ϕ_gi_arr = ϕ_qe_arr = ϕ_map_arr = nothing
     jldopen(qegi_file, "r") do f
@@ -158,7 +158,7 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     ϕ_true_arr === nothing && error("seed $seed not found in $qegi_file")
     ϕ_map_arr  === nothing && error("seed $seed not found in $map_file")
 
-    # ── Reload simulation ─────────────────────────────────────────────────────
+    # Reload simulation
     println("  Reloading simulation (μK=$μKarcminT, beam=$beamFWHM)...")
     Cℓn = noiseCℓs(μKarcminT=μKarcminT, ℓknee=0, ℓmax=Lmax)
     (; ϕ, ds) = load_sim(seed=seed, Cℓ=Cℓ_cam, Cℓn=Cℓn,
@@ -170,7 +170,7 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     wrap(arr)  = typeof(Map(ϕ))(Float64.(arr), ϕ.metadata)
     Cpp_spec   = get_Cℓ(wrap(ϕ_true_arr); Δℓ=100)
 
-    # ── Empirical N0 for all: power of (ϕ_est − W_L·ϕ_true) ─────────────────
+    # Empirical N0: power of (ϕ_est − W_L·ϕ_true)
     println("  Computing empirical N0 for GI, QE, MAP (up to 50 sims each)...")
     wL_lo_gi = minimum(WL_gi.ℓ);  wL_hi_gi = maximum(WL_gi.ℓ)
     wL_lo_qe = minimum(WL_qe.ℓ);  wL_hi_qe = maximum(WL_qe.ℓ)
@@ -223,7 +223,7 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     N0_map = Cℓs(Cpp_spec.ℓ, smooth_1d(max.(n0_map_sum ./ n0_map_cnt, 1e-60)))
     println("  N0_gi: $n0_gi_cnt sims, N0_qe: $n0_qe_cnt sims, N0_map: $n0_map_cnt sims")
 
-    # ── Wiener-filter and gradient ────────────────────────────────────────────
+    # Wiener-filter and gradient
     println("  Wiener-filtering all maps...")
     κ_true = bandpass_kappa(ϕ_true_arr, ℓ2d)
     κ_gi   = wiener_kappa(ϕ_gi_arr,   ℓ2d, Cpp_spec, N0_gi;  WL=WL_gi)
@@ -231,7 +231,7 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     κ_map  = wiener_kappa(ϕ_map_arr,  ℓ2d, Cpp_spec, N0_map; WL=WL_map)
     gmag   = grad_mag(ds.d, ℓx2D, ℓy2D)
 
-    # ── Choose patch ──────────────────────────────────────────────────────────
+    # Choose patch
     rows, cols = best_grad_patch(gmag, Np)
     patch_deg  = Np * θpix / 60
     r0_d = (first(rows)-1) * θpix / 60;  r1_d = last(rows)  * θpix / 60
@@ -248,7 +248,7 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     @printf("  Patch %.2f×%.2f deg | ρ_GI=%.3f  ρ_QE=%.3f  ρ_MAP=%.3f\n",
             patch_deg, patch_deg, ρ_gi, ρ_qe, ρ_map)
 
-    # ── Figure ────────────────────────────────────────────────────────────────
+    # Figure
     PythonPlot.rc("font",     family="serif", size=11)
     PythonPlot.rc("axes",     linewidth=0.6)
     PythonPlot.rc("xtick",    direction="in", top=true,   labelsize=9)
@@ -308,7 +308,7 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     axs[1,1].set_xlabel("RA (deg)"; fontsize=11)
     axs[1,1].tick_params(labelleft=false)
 
-    # ── Colorbars ─────────────────────────────────────────────────────────────
+    # Colorbars
     _cbw = 0.018; _gap = 0.012
     pos_c = axs[0,2].get_position()
     pos_d = axs[1,0].get_position()
@@ -330,7 +330,7 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     cb_κ.ax.set_xticklabels([@sprintf("%.2g", -vm_κ), "0", @sprintf("%.2g", vm_κ)])
     cb_κ.ax.tick_params(labelsize=11)
 
-    # ── Save ──────────────────────────────────────────────────────────────────
+    # Save
     mkpath(OUT_DIR)
     fig.savefig(out_file; dpi=200)
     println("  Saved → $out_file")
@@ -346,7 +346,7 @@ make_fig1(
     "results/phi_maps_map_12000.jld2",
     "results/WL_map_12000.jld2",
     1.0, 1.0,
-    joinpath(OUT_DIR, "fig1_gi_qe_map_gradient_s4.pdf"))
+    joinpath(OUT_DIR, "kappa_maps_s4.pdf"))
 
 # UL case (0.1 µK-arcmin, 0.3' beam)
 let
@@ -359,7 +359,7 @@ let
         "results/WL_qe_gi_12000_ul.jld2",
         ul_phi_map, ul_wl_map,
         0.1, 0.3,
-        joinpath(OUT_DIR, "fig1_gi_qe_map_gradient_ul.pdf"))
+        joinpath(OUT_DIR, "kappa_maps_ul.pdf"))
 end
 
 println("\nDone.")
