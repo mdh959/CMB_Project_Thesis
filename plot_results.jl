@@ -655,51 +655,37 @@ function set_log_ticks(ax, ymin, ymax)
     ax.yaxis.set_major_formatter(ticker.LogFormatterMathtext())
 end
 
-# Fig 2: mean spectra
+# Fig 2: mean cross spectrum
 let
     ncols = length(datasets)
-    fig, axs = PythonPlot.subplots(2, ncols;
-        figsize=(5.5*ncols, 8.0), sharex="col", constrained_layout=true)
-    getax(r, c) = ncols == 1 ? axs[r] : axs[r, c]
+    fig, axs = PythonPlot.subplots(1, ncols;
+        figsize=(5.5*ncols, 4.5), constrained_layout=true)
+    getax(c) = ncols == 1 ? axs : axs[c]
 
-    row_vals = [Float64[], Float64[]]
+    row_vals = Float64[]
 
     for (ci, d) in enumerate(datasets)
         Lc = d.Lc; c = ci - 1
-        ax = getax(0, c)
+        ax = getax(c)
         msk_t = @. !isnan(Lc) & isfinite(d.C̄_true) & (d.C̄_true > 1e-20)
         any(msk_t) && ax.semilogy(Lc[msk_t], d.C̄_true[msk_t];
             color="k", ls="--", lw=1.8, label=L"C_L^{\kappa\kappa}\,(true)")
-        append!(row_vals[1], d.C̄_true[msk_t])
+        append!(row_vals, d.C̄_true[msk_t])
         for (key, C̄x) in [("qe", d.C̄_x_qe), ("gi", d.C̄_x_gi), ("mj", d.C̄_x_mj)]
             key == "mj" && !d.has_map && continue
             msk = @. !isnan(Lc) & isfinite(C̄x) & (abs(C̄x) > 1e-20)
             any(msk) && ax.semilogy(Lc[msk], abs.(C̄x[msk]); color=CLR[key], lw=2, label=LBL[key])
-            append!(row_vals[1], abs.(C̄x[msk]))
+            append!(row_vals, abs.(C̄x[msk]))
         end
-        ax.set_title(d.label, fontsize=9); ax.set_xlim(d.xlim...)
-        ci == 1 && ax.legend(loc="upper right", frameon=false, fontsize=8)
-
-        ax = getax(1, c)
-        any(msk_t) && ax.semilogy(Lc[msk_t], d.C̄_true[msk_t];
-            color="k", ls="--", lw=1.8, label=L"C_L^{\kappa\kappa}\,(true)")
-        append!(row_vals[2], d.C̄_true[msk_t])
-        for (key, C̄a) in [("qe", d.C̄_a_qe), ("gi", d.C̄_a_gi), ("gi_fgmc", d.C̄_a_gi_fgmc), ("mj", d.C̄_a_mj)]
-            key == "mj" && !d.has_map && continue
-            msk = @. !isnan(Lc) & isfinite(C̄a) & (abs(C̄a) > 1e-20)
-            any(msk) && ax.semilogy(Lc[msk], abs.(C̄a[msk]); color=CLR[key], lw=2, label=LBL[key])
-            append!(row_vals[2], abs.(C̄a[msk]))
-        end
-        ax.set_xlim(d.xlim...); ax.set_xlabel(L"L", fontsize=12)
+        ax.set_title(d.label, fontsize=9)
+        ax.set_xlim(d.xlim...)
+        ax.set_xlabel(L"L", fontsize=12)
         ci == 1 && ax.legend(loc="upper right", frameon=false, fontsize=8)
     end
-    getax(0, 0).set_ylabel(L"\bar{C}_L^{\kappa\hat\kappa}", fontsize=12)
-    getax(1, 0).set_ylabel(L"\bar{C}_L^{\hat\kappa\hat\kappa}", fontsize=12)
-    for (row, vals) in enumerate(row_vals)
-        isempty(vals) && continue
-        ax0 = getax(row - 1, 0)
-        set_log_ticks(ax0, minimum(vals), maximum(vals))
-        for ci in 2:ncols; getax(row - 1, ci - 1).sharey(ax0); end
+    getax(0).set_ylabel(L"\bar{C}_L^{\kappa\hat\kappa}", fontsize=12)
+    if !isempty(row_vals)
+        set_log_ticks(getax(0), minimum(row_vals), maximum(row_vals))
+        for ci in 2:ncols; getax(ci - 1).sharey(getax(0)); end
     end
 
     fig.savefig("$OUT_DIR/fig2_mean_spectra.png"; dpi=200)
@@ -707,95 +693,72 @@ let
     println("Saved fig2_mean_spectra.png")
 end
 
-# Fig 3: σ panels — auto (top) and cross (bottom)
+# Fig 3: cross σ panels with LensIt comparison
 let
     ncols = length(datasets)
-    fig, axs = PythonPlot.subplots(2, ncols;
-        figsize=(5.5*ncols, 8.5),
-        gridspec_kw=Dict("hspace"=>0.06), constrained_layout=false)
-    PythonPlot.subplots_adjust(left=0.09, right=0.97, top=0.95, bottom=0.07)
-    getax(r, c) = ncols == 1 ? axs[r] : axs[r, c]
+    fig, axs = PythonPlot.subplots(1, ncols;
+        figsize=(5.5*ncols, 4.5), constrained_layout=true)
+    getax(c) = ncols == 1 ? axs : axs[c]
 
     for (ci, d) in enumerate(datasets)
         Lc = d.Lc; c = ci - 1
-        li_d  = datasets_lensit[ci]
+        li_d = datasets_lensit[ci]
         title = "$(d.label)  (QE/GI: $(d.nsims_qegi) sims" *
                 (d.has_map ? ", MAP: $(d.nsims_map) sims)" : ")")
 
-        auto_pairs = Tuple{String,Vector{Float64},Vector{Float64}}[
-            ("qe",       d.σ_a_qe_all,   d.σ_th_a_qe),
-            ("gi_linrd", d.σ_a_gi_linrd, d.σ_th_a_gi_linrd),
-            ("mj",       d.σ_a_mj,       d.σ_th_a_mj),
-        ]
-        if !isnothing(li_d)
-            push!(auto_pairs, ("lensit_qe", li_d.σ_a_qe_all, li_d.σ_th_a_qe))
-            li_d.has_map && push!(auto_pairs, ("lensit_mj", li_d.σ_a_mj, li_d.σ_th_a_mj))
-        end
-
         cross_pairs = Tuple{String,Vector{Float64},Vector{Float64}}[
-            ("qe",   d.σ_x_qe,    d.σ_th_x_qe),
-            ("gi",   d.σ_x_gi,    d.σ_th_x_gi),
-            ("mj",   d.σ_x_mj,    d.σ_th_x_mj),
+            ("qe", d.σ_x_qe,  d.σ_th_x_qe),
+            ("gi", d.σ_x_gi,  d.σ_th_x_gi),
+            ("mj", d.σ_x_mj,  d.σ_th_x_mj),
         ]
         if !isnothing(li_d)
             push!(cross_pairs, ("lensit_qe", li_d.σ_x_qe, li_d.σ_th_x_qe))
             li_d.has_map && push!(cross_pairs, ("lensit_mj", li_d.σ_x_mj, li_d.σ_th_x_mj))
         end
 
-        for (row, pairs) in [(0, auto_pairs), (1, cross_pairs)]
-            ax = getax(row, c)
-            for (key, σ, σ_th) in pairs
-                key == "mj"        && !d.has_map      && continue
-                key == "gi_linrd"  && !d.has_gi_linrd  && continue
-                key == "lensit_qe" && isnothing(li_d)  && continue
-                key == "lensit_mj" && (isnothing(li_d) || !li_d.has_map) && continue
-                msk = @. !isnan(Lc) & isfinite(σ) & (σ > 0)
-                !any(msk) && continue
-                N_sims = if key == "mj";          d.nsims_map
-                         elseif key == "gi_linrd"; d.nsims_gi_linrd
-                         elseif key == "qe";       row == 1 ? d.nsims_qegi : d.nsims_qe_rdn0
-                         elseif key == "lensit_qe"; li_d.nsims_qegi
-                         elseif key == "lensit_mj"; li_d.nsims_map
-                         else d.nsims_qegi
-                         end
-                err_frac = 1 / sqrt(2 * max(N_sims - 1, 1))
-                ax.fill_between(Lc[msk], σ[msk] .* (1 - err_frac), σ[msk] .* (1 + err_frac);
-                    color=CLR[key], alpha=0.18, linewidth=0)
-                lbl = (row == 1 && key == "gi") ? "GI" : (row == 1 && key == "qe") ? "QE" : LBL[key]
-                ax.semilogy(Lc[msk], σ[msk]; color=CLR[key], lw=2, ls=get(LSTY, key, "-"), label=lbl)
-            end
-            ax.set_xlim(d.xlim...)
-            if row == 0
-                ax.set_title(title, fontsize=9); ax.tick_params(labelbottom=false)
-                ci == 1 && ax.legend(loc="upper left", frameon=false, fontsize=8,
-                    title="±σ̂/√(2N) band", title_fontsize=6.5)
-            else
-                ax.set_xlabel(L"$L$", fontsize=12)
-                ci == 1 && ax.legend(frameon=false, fontsize=8)
-            end
-            panel_idx = (ci - 1) * 2 + row
-            ax.text(-0.02, 1.02, "($(Char(Int('a') + panel_idx)))";
-                transform=ax.transAxes, va="bottom", ha="left", fontsize=11, fontweight="bold")
+        ax = getax(c)
+        for (key, σ, σ_th) in cross_pairs
+            key == "mj"        && !d.has_map      && continue
+            key == "lensit_qe" && isnothing(li_d) && continue
+            key == "lensit_mj" && (isnothing(li_d) || !li_d.has_map) && continue
+            msk = @. !isnan(Lc) & isfinite(σ) & (σ > 0)
+            !any(msk) && continue
+            N_sims = if key == "mj";           d.nsims_map
+                     elseif key == "qe";        d.nsims_qegi
+                     elseif key == "lensit_qe"; li_d.nsims_qegi
+                     elseif key == "lensit_mj"; li_d.nsims_map
+                     else d.nsims_qegi
+                     end
+            err_frac = 1 / sqrt(2 * max(N_sims - 1, 1))
+            ax.fill_between(Lc[msk], σ[msk] .* (1 - err_frac), σ[msk] .* (1 + err_frac);
+                color=CLR[key], alpha=0.18, linewidth=0)
+            lbl = key == "gi" ? "GI" : key == "qe" ? "QE" : LBL[key]
+            ax.semilogy(Lc[msk], σ[msk]; color=CLR[key], lw=2, ls=get(LSTY, key, "-"), label=lbl)
         end
+        ax.set_xlim(d.xlim...)
+        ax.set_xlabel(L"$L$", fontsize=12)
+        ax.set_title(title, fontsize=9)
+        ci == 1 && ax.legend(frameon=false, fontsize=8,
+            title="±σ̂/√(2N) band", title_fontsize=6.5)
+        ax.text(-0.02, 1.02, "($(Char(Int('a') + ci - 1)))";
+            transform=ax.transAxes, va="bottom", ha="left", fontsize=11, fontweight="bold")
     end
 
-    ylims_fixed = [(0, (1e-13, 1e-8)), (1, (1e-14, 1e-12))]
-    for (row, (ylo, yhi)) in ylims_fixed
-        ax0 = getax(row, 0)
-        ax0.set_ylim(ylo, yhi)
-        ax0.yaxis.set_major_locator(ticker.LogLocator(base=10.0))
-        ax0.yaxis.set_minor_locator(ticker.LogLocator(base=10.0, subs=collect(2:9), numticks=100))
-        ax0.yaxis.set_major_formatter(ticker.LogFormatterMathtext())
-        for ci in 2:ncols; getax(row, ci-1).sharey(ax0); end
-        for ci in 2:ncols; getax(row, ci-1).sharex(getax(row, 0)); end
-        for ci in 2:ncols; getax(row, ci-1).tick_params(labelleft=false); end
+    ax0 = getax(0)
+    ax0.set_ylim(1e-14, 1e-12)
+    ax0.yaxis.set_major_locator(ticker.LogLocator(base=10.0))
+    ax0.yaxis.set_minor_locator(ticker.LogLocator(base=10.0, subs=collect(2:9), numticks=100))
+    ax0.yaxis.set_major_formatter(ticker.LogFormatterMathtext())
+    ax0.set_ylabel(L"$\sigma[C_L^{\kappa\hat\kappa}]$", fontsize=12)
+    for ci in 2:ncols
+        getax(ci - 1).sharey(ax0)
+        getax(ci - 1).tick_params(labelleft=false)
     end
-    getax(0, 0).set_ylabel(L"$\sigma[C_L^{\hat\kappa\hat\kappa}]$", fontsize=12)
-    getax(1, 0).set_ylabel(L"$\sigma[C_L^{\kappa\hat\kappa}]$", fontsize=12)
 
     fig.savefig("$OUT_DIR/fig3_sigma_panels.png"; dpi=200, bbox_inches="tight")
+    fig.savefig("$OUT_DIR/fig3_sigma_panels.pdf"; bbox_inches="tight")
     PythonPlot.plotclose("all")
-    println("Saved fig3_sigma_panels.png")
+    println("Saved fig3_sigma_panels.png/.pdf")
 end
 
 # Fig WL: transfer functions
