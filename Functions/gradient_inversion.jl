@@ -145,7 +145,6 @@ function gi_estimate_wiener_fast(ds; Lgrad=2000, Lhp=4000, Lmax=12000,
     ℓy2D   = repeat(ℓy_arr,  1,   Nx)
     L2_2D  = ℓx2D .^ 2 .+ ℓy2D .^ 2
     Lmag   = sqrt.(L2_2D)
-    # rfft half-plane: ℓy ≥ 0, so θ ∈ [0, π]
     θ_2D   = atan.(ℓy2D, ℓx2D)
 
     φ_F = zeros(ComplexF64, NyF, Nx)
@@ -171,8 +170,7 @@ function gi_estimate_wiener_fast(ds; Lgrad=2000, Lhp=4000, Lmax=12000,
             L_lo, L_hi = L_edges[ir], L_edges[ir + 1]
             L_c = sqrt(L_lo * L_hi)   # geometric mean
 
-            # Mode mask for this (angle, radial) bin
-            # First and last angle bins absorb the boundary modes at θ=0 and θ=π
+            # boundary bins absorb modes at θ=0 and θ=π
             if ia == 1
                 bin_mask = @. (Lmag >= L_lo) & (Lmag < L_hi) & (θ_2D < θ_hi)
             elseif ia == N_abins
@@ -187,8 +185,6 @@ function gi_estimate_wiener_fast(ds; Lgrad=2000, Lhp=4000, Lmax=12000,
             Cϕ_c = mean(Cϕ_2D[bin_mask])
             Cϕ_c <= 0 && continue
 
-            # gprod = L_c * gp_buf (projected gradient scaled to actual |L|)
-            # W = Cϕ / (PS / gprod² + Cϕ) = Cϕ·gprod² / (PS + Cϕ·gprod²)
             @. W_buf  = Cϕ_c * (L_c * gp_buf)^2 / max(PS_c + Cϕ_c * (L_c * gp_buf)^2, 1e-60)
             @. pe_buf = W_buf * T_hp / (L_c * gp_buf)
             W_mean = mean(W_buf)

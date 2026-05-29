@@ -35,9 +35,9 @@ function plot_grad_T_lensed(f̃)
 end
 
 """
-    compare_gradT_phi_errors(f, ϕ, ϕJ, ϕmarg, ϕqe)
+    plot_phi_error_vs_gradT(f, mean_Δϕ²_qe, mean_Δϕ²_joint, mean_Δϕ²_marg)
 
-Six-panel comparison: |∇T|, φ_true, and φ residuals for QE / joint / marg.
+Binned mean |Δϕ|² vs |∇T| for QE, joint MAP, and MAP marg, with 1σ shaded bands.
 """
 function plot_phi_error_vs_gradT(f, mean_Δϕ²_qe::Matrix, mean_Δϕ²_joint::Matrix, mean_Δϕ²_marg::Matrix;
                                  nbins=20, min_count=10)
@@ -94,62 +94,6 @@ function plot_phi_error_vs_gradT(f, mean_Δϕ²_qe::Matrix, mean_Δϕ²_joint::M
     ax_bot.tick_params(labelsize=10)
     ax_bot.spines["top"].set_visible(false)
     ax_bot.spines["right"].set_visible(false)
-
-    fig.tight_layout()
-end
-
-"""
-    plot_phi_error_vs_gradT(f, ϕ, ϕqe, ϕ_J, ϕ_marg; nbins=20, min_count=10)
-
-Binned mean |Δϕ|² vs |∇T| for each estimator, with 1σ shaded error bands.
-Bins with fewer than `min_count` pixels are excluded.
-"""
-function plot_phi_error_vs_gradT_old(f, ϕ, ϕqe, ϕ_J, ϕ_marg; nbins=20, min_count=10)
-    _, _, grad_mag = grad_fft(f)
-
-    ΔϕQE   = Float64.((Map(ϕ) - Map(ϕqe)).arr)
-    ΔϕJ    = Float64.((Map(ϕ) - Map(ϕ_J)).arr)
-    Δϕmarg = Float64.((Map(ϕ) - Map(ϕ_marg)).arr)
-
-    e_QE   = abs.(ΔϕQE) .^ 2
-    e_J    = abs.(ΔϕJ) .^ 2
-    e_marg = abs.(Δϕmarg) .^ 2
-    cen, m_QE,   s_QE,   n_QE   = bin_stat_err(Float64.(grad_mag), e_QE;   nbins=nbins)
-    _,   m_J,    s_J,    n_J    = bin_stat_err(Float64.(grad_mag), e_J;    nbins=nbins)
-    _,   m_marg, s_marg, n_marg = bin_stat_err(Float64.(grad_mag), e_marg; nbins=nbins)
-
-    ok_QE   = n_QE   .>= min_count
-    ok_J    = n_J    .>= min_count
-    ok_marg = n_marg .>= min_count
-
-    plt.rc("font",   size=12, family="serif")
-    plt.rc("axes",   linewidth=0.8)
-    plt.rc("xtick",  direction="in", top=true)
-    plt.rc("ytick",  direction="in", right=true)
-    plt.rc("xtick.major", width=0.8, size=4)
-    plt.rc("ytick.major", width=0.8, size=4)
-
-    colours = ["#4477AA", "#EE6677", "#228833"]
-
-    fig, ax = plt.subplots(figsize=(5.5, 4))
-
-    for (ok, m, s, col, lab, mk) in [
-        (ok_QE,   m_QE,   s_QE,   colours[1], "QE",        "o"),
-        (ok_J,    m_J,    s_J,    colours[2], "Joint MAP",  "s"),
-        (ok_marg, m_marg, s_marg, colours[3], "MAP marg",   "^"),
-    ]
-        c, μ, σ = cen[ok], m[ok], s[ok]
-        ax.plot(c, μ, marker=mk, color=col, label=lab,
-                markersize=4, linewidth=1.2, markeredgewidth=0.6, markeredgecolor="white")
-        ax.fill_between(c, μ .- σ, μ .+ σ, alpha=0.2, color=col)
-    end
-
-    ax.set_xlabel(L"|\nabla T|\;\mathrm{(per\;pixel)}", fontsize=13)
-    ax.set_ylabel(L"\langle|\Delta\phi|^2\rangle", fontsize=13)
-    ax.legend(frameon=false, fontsize=11)
-    ax.tick_params(labelsize=11)
-    ax.spines["top"].set_visible(false)
-    ax.spines["right"].set_visible(false)
 
     fig.tight_layout()
 end

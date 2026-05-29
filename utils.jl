@@ -7,8 +7,6 @@ export grad_fft
 export gi_estimate, gi_twoleg, gi_estimate_boryana, gi_estimate_corrected, gi_estimate_wiener_fast
 export gi_n0_fixed_gradient_mc, gi_n0_mc,
        gi_n0_rdn0, gi_n0_linrd_analytical, gi_n0_linrd_analyticbaseline, compute_sigma_fid
-export compute_RL_iterative, compute_WL, compute_WL_analytical
-export empirical_WL_all_loadsim
 export debias_phi_with_WL
 export save_results
 export plot_grad_T_lensed, compare_gradT_phi_errors,
@@ -18,7 +16,6 @@ export plot_grad_T_lensed, compare_gradT_phi_errors,
 include("Functions/spectra.jl")
 include("Functions/gradient.jl")
 include("Functions/gradient_inversion.jl")
-include("Functions/normalization.jl")
 include("Functions/debias.jl")
 include("Functions/io.jl")
 include("Functions/plotting.jl")
