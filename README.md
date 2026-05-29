@@ -163,3 +163,9 @@ Carron, J. and Lewis, A. (2017), *Maximum a posteriori CMB lensing reconstructio
 Millea, M., Anderes, E., and Wandelt, B. D. (2020), *Bayesian delensing of CMB temperature and polarization*, Phys. Rev. D **102**, 123542. [doi:10.1103/PhysRevD.102.123542](https://link.aps.org/doi/10.1103/PhysRevD.102.123542) — joint MAP algorithm implemented in CMBLensing.jl.
 
 Lewis, A., Challinor, A., and Lasenby, A. (2000), *Efficient Normal Form Decomposition of General Inflationary Perturbations*, ApJ **538**, 473. [doi:10.1086/309179](https://doi.org/10.1086/309179) — CAMB power spectrum code used to generate input Cℓ's.
+
+---
+
+## AI use declaration
+
+The AI assistant Claude (Anthropic) was used during the development of this codebase to assist with code editing, debugging, and documentation. All research design, scientific methodology, algorithm implementation, and analysis are the author's own work. No AI tool was used to generate scientific results or conclusions.
