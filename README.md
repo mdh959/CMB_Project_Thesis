@@ -122,14 +122,14 @@ All simulations use `seed = 1000 + sim_index` (Julia) and `idx` (LensIt, 0-index
 
 ### QE RDN0
 
-The QE realization-dependent N0 is computed via `N0_bias` from CMBLensing.jl (built-in). It uses the standard DD–DS–SD+SS combination to achieve O(ε²) bias in per-realization power mismatch.
+The QE realisation-dependent N0 is computed via `N0_bias` from CMBLensing.jl (built-in). It uses the standard DD–DS–SD+SS combination to achieve O(ε²) bias in per-realization power mismatch.
 
 ### GI N0 methods
 
 Three GI N0 estimators are implemented and compared:
 - **fg-MC**: fixed-gradient Monte Carlo — holds the per-sim gradient fixed while drawing independent null T maps
-- **RDN0**: realization-dependent N0 using the DS+SD−SS combination with fiducial gradient variances σ_fid
-- **lin-RD**: linearised realization-dependent N0 — expands the noise around the mean (fiducial) data power
+- **RDN0**: realisation-dependent N0 using the DS+SD−SS combination with fiducial gradient variances σ_fid
+- **lin-RD**: linearised realisation-dependent N0 — expands the noise around the mean (fiducial) data power
 
 The fg-MC and lin-RD estimates are used together as the primary debiasing strategy; RDN0 is included as a cross-check.
 

@@ -575,8 +575,7 @@ function process_noise_level(WL_file, phi_maps_file, label;
      phi_maps_file=phi_maps_file)
 end
 
-# ── Load datasets ─────────────────────────────────────────────────────────────
-
+# Load datasets
 s4 = process_noise_level(
     "results/WL_qe_gi_12000.jld2",
     "results/phi_maps_qe_gi_12000.jld2",
@@ -626,8 +625,7 @@ datasets = filter(!isnothing, Any[s4, ul])
 datasets_lensit = [nothing for _ in datasets]
 lensit_ul !== nothing && length(datasets_lensit) >= 2 && (datasets_lensit[2] = lensit_ul)
 
-# ── Plot style ────────────────────────────────────────────────────────────────
-
+# Plot style
 const ticker = PythonPlot.matplotlib.ticker
 
 PythonPlot.rc("font",        family="serif", size=11)
@@ -657,7 +655,7 @@ function set_log_ticks(ax, ymin, ymax)
     ax.yaxis.set_major_formatter(ticker.LogFormatterMathtext())
 end
 
-# ── Fig 2: mean spectra ───────────────────────────────────────────────────────
+# Fig 2: mean spectra
 let
     ncols = length(datasets)
     fig, axs = PythonPlot.subplots(2, ncols;
@@ -709,7 +707,7 @@ let
     println("Saved fig2_mean_spectra.png")
 end
 
-# ── Fig 3: σ panels — auto (top) and cross (bottom) ──────────────────────────
+# Fig 3: σ panels — auto (top) and cross (bottom)
 let
     ncols = length(datasets)
     fig, axs = PythonPlot.subplots(2, ncols;
@@ -800,7 +798,7 @@ let
     println("Saved fig3_sigma_panels.png")
 end
 
-# ── Fig WL: transfer functions ────────────────────────────────────────────────
+# Fig WL: transfer functions
 let
     FS = 11
     panel_titles = ["CMB-S4-like", "Ultra-Low-noise"]
@@ -868,7 +866,7 @@ let
     println("Saved fig_WL.png + .pdf")
 end
 
-# ── Fig 6: ρ_L correlation coefficient ───────────────────────────────────────
+# Fig 6: ρ_L correlation coefficient
 let
     FS = 11
     panel_titles = ["CMB-S4-like", "Ultra-Low-noise"]
@@ -905,7 +903,7 @@ let
     println("Saved fig6_rho_L.png + .pdf")
 end
 
-# ── Fig: covariance / correlation matrices ────────────────────────────────────
+# Fig: covariance / correlation matrices
 function corr_matrix(B::Matrix)
     nb, ns = size(B); ns < 3 && return fill(NaN, nb, nb)
     Ac = B .- mean(B; dims=2)
@@ -1043,7 +1041,7 @@ let
     println("Saved fig_covariance_correlation.png")
 end
 
-# ── Fig C: MAP convergence ────────────────────────────────────────────────────
+# Fig C: MAP convergence
 let
     map_entries = [
         ("CMB-S4-like",     "results/WL_map_12000.jld2",              40),
@@ -1108,7 +1106,7 @@ let
     end
 end
 
-# ── SNR table ─────────────────────────────────────────────────────────────────
+# SNR table
 let
     _sf(x) = isnan(x) ? "        -" : @sprintf("%9.1f", x)
     _sp(x) = x <= 0   ? "        -" : @sprintf("%9.0f", x)

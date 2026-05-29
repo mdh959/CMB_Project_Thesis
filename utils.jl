@@ -4,7 +4,7 @@ using CMBLensing, PythonPlot, NPZ, Statistics, LinearAlgebra, JLD2
 
 export get_Cℓ_fft, bin_spectrum, bin_stat, bin_stat_err
 export grad_fft
-export gi_estimate, gi_twoleg, gi_estimate_boryana, gi_estimate_corrected, gi_estimate_wiener_fast
+export gi_estimate, gi_twoleg, gi_estimate_ref, gi_estimate_corrected, gi_estimate_wiener_fast
 export gi_n0_fixed_gradient_mc, gi_n0_mc,
        gi_n0_rdn0, gi_n0_linrd_analytical, gi_n0_linrd_analyticbaseline, compute_sigma_fid
 export debias_phi_with_WL

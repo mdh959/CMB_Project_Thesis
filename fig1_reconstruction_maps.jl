@@ -8,7 +8,7 @@ import Pkg; Pkg.activate(@__DIR__)
 using CMBLensing, Statistics, JLD2, PythonPlot, PythonCall, Printf, LinearAlgebra
 import CMBLensing: m_rfft, m_irfft
 
-# ─── Shared geometry ──────────────────────────────────────────────────────────
+# Shared geometry
 const θpix       = 0.7438046267475303
 const θpix_rad   = θpix * π / (180 * 60)
 const Nside      = 512
@@ -18,9 +18,9 @@ const Lgrad      = 2000
 const RAD2AMIN   = 60 * 180 / π
 const Np         = 138
 const TARGET_SEED = 1001
-const OUT_DIR    = "results/Boryana's paper"
+const OUT_DIR    = "results"
 
-# ─── Helpers ──────────────────────────────────────────────────────────────────
+# Helpers
 function fftfreq_ints(N)
     iseven(N) ? vcat(0:(N÷2), (-(N÷2-1)):-1) : vcat(0:((N-1)÷2), (-((N-1)÷2)):-1)
 end
@@ -104,12 +104,12 @@ function best_grad_patch(gmag, Np; stride=4)
     return best.r0:best.r0+Np-1, best.c0:best.c0+Np-1
 end
 
-# ─── Precompute once ──────────────────────────────────────────────────────────
+# Precompute once
 println("Precomputing CAMB spectrum and Fourier grid...")
 const Cℓ_cam             = camb(r=0.05, ℓmax=35000)
 const ℓx2D, ℓy2D, ℓ2d  = make_ellxy_grid_rfft(Nside, θpix_rad)
 
-# ─── Figure factory ───────────────────────────────────────────────────────────
+# Figure factory
 function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
                    μKarcminT::Float64, beamFWHM::Float64, out_file;
                    seed::Int=TARGET_SEED)
@@ -339,7 +339,7 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     PythonPlot.plotclose("all")
 end
 
-# ─── S4 case (1 µK-arcmin, 1' beam) ──────────────────────────────────────────
+# S4 case (1 µK-arcmin, 1' beam)
 make_fig1(
     "results/phi_maps_qe_gi_12000.jld2",
     "results/WL_qe_gi_12000.jld2",
@@ -348,7 +348,7 @@ make_fig1(
     1.0, 1.0,
     joinpath(OUT_DIR, "fig1_gi_qe_map_gradient_s4.pdf"))
 
-# ─── UL case (0.1 µK-arcmin, 0.3' beam) ──────────────────────────────────────
+# UL case (0.1 µK-arcmin, 0.3' beam)
 let
     ul_wl_map  = isfile("results/WL_map_12000_ul_zero_a01.jld2")       ? "results/WL_map_12000_ul_zero_a01.jld2"       :
                  isfile("results/WL_map_12000_ul.jld2")                ? "results/WL_map_12000_ul.jld2"                : ""

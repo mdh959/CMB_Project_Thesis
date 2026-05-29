@@ -86,7 +86,7 @@ function run_noise_level(μKarcminT::Float64, suffix::String, Lmax::Int, beamFWH
 
     safe_div(a, b) = @. ifelse(abs(b) > 0.0, a / b, 0.0)
 
-    # ── Resume checkpoint ──────────────────────────────────────────────────────
+    # Resume checkpoint
     sum_R_qe_raw = sum_R_gi_b = W_qe_raw = W_gi_b = ℓ_template = nothing
     nsims_completed = 0; seeds_done = Int[]
     if isfile(WL_file)
@@ -115,7 +115,7 @@ function run_noise_level(μKarcminT::Float64, suffix::String, Lmax::Int, beamFWH
         end
     end
 
-    # ── Fiducial GI denominator ───────────────────────────────────────────────
+    # Fiducial GI denominator
     # σ_fid is shared by gi_estimate AND gi_n0_rdn0 so both use identical mode
     # masks. Without this, RDN0 debiases a different estimator than was run.
     σ_fid_gi = if isfile(WL_file) && haskey(JLD2.load(WL_file), "σ_fid_gi_xx")
@@ -132,7 +132,7 @@ function run_noise_level(μKarcminT::Float64, suffix::String, Lmax::Int, beamFWH
         sf
     end
 
-    # ── QE / GI sim loop ──────────────────────────────────────────────────────
+    # QE / GI sim loop
     for s in (nsims_completed + 1):nsims
         seed = seed0 + s
         print("  Sim $s/$nsims (seed=$seed) ... "); flush(stdout)
@@ -198,7 +198,7 @@ function run_noise_level(μKarcminT::Float64, suffix::String, Lmax::Int, beamFWH
             !haskey(f,"sim_$s/N0_gi_linrd") &&
                 (f["sim_$s/N0_gi_linrd_ell"] = Float64.(gi_n0_linrd.ℓ);
                  f["sim_$s/N0_gi_linrd"]     = Float64.(gi_n0_linrd.Cℓ))
-            # GI RDN0 (realization-dependent, uses σ_fid)
+            # GI RDN0 (realisation-dependent, uses σ_fid)
             !haskey(f,"sim_$s/N0_gi_rdn0_v2") &&
                 (f["sim_$s/N0_gi_rdn0_v2_ell"] = Float64.(gi_n0_rd.ℓ);
                  f["sim_$s/N0_gi_rdn0_v2"]     = Float64.(gi_n0_rd.Cℓ))
@@ -208,7 +208,7 @@ function run_noise_level(μKarcminT::Float64, suffix::String, Lmax::Int, beamFWH
         println("done"); flush(stdout)
     end
 
-    # ── Retroactive fg-MC N0 (safety net + regen old entries without metadata) ──
+    # Retroactive fg-MC N0 (safety net + regen old entries without metadata)
     if isfile(phi_maps_file)
         sims_need_fgmc = Int[]
         jldopen(phi_maps_file, "r") do f
@@ -243,7 +243,7 @@ function run_noise_level(μKarcminT::Float64, suffix::String, Lmax::Int, beamFWH
         end
     end
 
-    # ── Retroactive QE RDN0 ────────────────────────────────────────────────────
+    # Retroactive QE RDN0
     if run_rdn0 && isfile(phi_maps_file)
         sims_need_qe_rdn0 = Int[]
         jldopen(phi_maps_file, "r") do f
@@ -270,7 +270,7 @@ function run_noise_level(μKarcminT::Float64, suffix::String, Lmax::Int, beamFWH
         end
     end
 
-    # ── Retroactive GI RDN0 v2 (corrected formula with σ_fid) ─────────────────
+    # Retroactive GI RDN0 v2 (corrected formula with σ_fid)
     if isfile(phi_maps_file)
         sims_need_rdn0_v2 = Int[]
         jldopen(phi_maps_file, "r") do f
@@ -344,7 +344,7 @@ function run_noise_level(μKarcminT::Float64, suffix::String, Lmax::Int, beamFWH
 
     run_map || (println("MAP section skipped."); return)
 
-    # ── MAP joint ─────────────────────────────────────────────────────────────
+    # MAP joint
     MAP_WL_file  = "results/WL_map_12000$(map_file_suffix).jld2"
     MAP_phi_file = "results/phi_maps_map_12000$(map_file_suffix).jld2"
 
@@ -500,7 +500,8 @@ function run_noise_level(μKarcminT::Float64, suffix::String, Lmax::Int, beamFWH
 end
 
 
-# ── GI-Wiener (per-pixel Wiener, eq. 29 / Blake 2) ───────────────────────────
+# run_gi_wiener: pixel-exact Wiener GI (gi_estimate_corrected).
+# Uncomment the call below to generate results; output is not loaded by plot_results.jl.
 function run_gi_wiener(μKarcminT::Float64, suffix::String;
                        nsims_w::Int=100, Lmax::Int=12000, beamFWHM::Float64=0.3,
                        Δℓ_wl::Int=150)
@@ -575,15 +576,15 @@ function run_gi_wiener(μKarcminT::Float64, suffix::String;
     println("GI-Wiener done! $nsims_done sims.  Output: $WL_file, $phi_file")
 end
 
-run_gi_wiener(0.1, "_ul")
+# run_gi_wiener(0.1, "_ul")   # uncomment to run pixel-exact GI (slow)
 
-# ── S4-like: 1 µK-arcmin, 1′ beam ─────────────────────────────────────────────
-#run_noise_level(1.0, "", 12000, 1.0; run_rdn0=true, run_map=false)
+# S4-like: 1 µK-arcmin, 1' beam
+run_noise_level(1.0, "", 12000, 1.0;
+                run_rdn0=true, run_map=true,
+                map_nsteps=40, map_αmax=0.3,
+                map_cg_nsteps=200, map_nsims=500)
 
-# ── Ultra-low noise QE/GI (existing sims — loop skips if already complete) ───
-
-
-
+# Ultra-low noise: 0.1 µK-arcmin, 0.3' beam
 run_noise_level(0.1, "_ul", 12000, 0.3;
                 Δℓ_wl=150,
                 run_rdn0=false,

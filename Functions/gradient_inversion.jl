@@ -2,7 +2,7 @@ using CMBLensing: Map, m_rfft, m_irfft, FlatMap, LowPass, HighPass, simulate, ge
 using Statistics: mean
 using Random: MersenneTwister
 
-export gi_estimate, gi_estimate_boryana, gi_estimate_corrected,
+export gi_estimate, gi_estimate_ref, gi_estimate_corrected,
        gi_twoleg, compute_sigma_fid,
        gi_n0_fixed_gradient_mc, gi_n0_mc, gi_n0_rdn0,
        gi_n0_linrd_analytical, gi_n0_linrd_analyticbaseline
@@ -110,9 +110,9 @@ end
 """
     gi_estimate_wiener_fast(ds; Lgrad=2000, Lhp=4000, Lmax=12000, N_abins=12, N_rbins=8)
 
-Fast binned approximation to the per-pixel Wiener GI estimator (Hadzhiyska+2019 eq. 29 /
-Blake 2 `real_filt_subtr_method.py`). Groups modes into N_abins×N_rbins bins; takes one
-FFT per bin instead of one FFT per mode, giving a ~400–700× speedup with <5% error in W_L.
+Fast binned approximation to the per-pixel Wiener GI estimator (Hadzhiyska+2019, eq. 29).
+Groups modes into N_abins×N_rbins bins; takes one FFT per bin instead of one FFT per mode,
+giving a ~400–700× speedup with <5% error in W_L.
 
 For each (angle,radial) bin centred at (Lx_c, Ly_c):
   gprod(x)  = Lx_c·gx + Ly_c·gy           [per-pixel projected gradient]
@@ -206,8 +206,8 @@ end
 """
     gi_estimate_corrected(ds; Lgrad=2000, Lhp=4000, Lmax=20000)
 
-Pixel-exact GI estimator matching Boryana's Python code (real_filt_subtr_method.py).
-For each output mode L, a per-pixel Wiener weight is applied before the FFT:
+Pixel-exact GI estimator (Hadzhiyska+2019, eq. 29). For each output mode L, a per-pixel
+Wiener weight is applied before the FFT:
 
     gprod(x) = Lx·gx(x) + Ly·gy(x)
     W(x)     = Cϕ(L) / (C_TT(L)/gprod(x)² + Cϕ(L))
@@ -276,12 +276,12 @@ end
 
 
 """
-    gi_estimate_boryana(ds)
+    gi_estimate_ref(ds)
 
-GI estimator matching Boryana's original implementation. Uses explicit
+GI estimator in the original Hadzhiyska+2019 form. Uses explicit
 T_hp = T - LowPass(4000)*T subtraction, no lower-L cut, and Lmax=20000.
 """
-function gi_estimate_boryana(ds; denom_floor_frac=1e-8)
+function gi_estimate_ref(ds; denom_floor_frac=1e-8)
     Lgrad = 2000
     Lhp   = 4000
     Lmax  = 20000

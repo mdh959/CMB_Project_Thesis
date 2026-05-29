@@ -32,7 +32,7 @@ from lensit.ffs_iterators.ffs_iterator_nufft import ffs_iterator_pertMF
 from lensit.ffs_deflect import ffs_deflect
 from lensit.qcinv import ffs_ninv_filt_ideal_nufft, chain_samples, opfilt_cinv
 
-# ── Parameters ────────────────────────────────────────────────────────────────
+# Parameters
 NlevT        = 0.1           # µK-arcmin
 beamFWHM     = 0.3           # arcmin
 LD_res       = 9             # 2^9 = 512 pixels
@@ -51,7 +51,7 @@ GRAD_CONV    = 0.04          # stop early when grad_ratio < 4%
 
 nTpix = NlevT / θpix_arcmin
 
-# ── Paths ──────────────────────────────────────────────────────────────────────
+# Paths
 out_dir      = 'results/lensit/ul'
 lib_dir_iso  = 'TEMP/lensit_ul_isocov'
 lib_dir_sims = 'TEMP/lensit_ul_sims'
@@ -71,7 +71,7 @@ print(f"  NlevT={NlevT} µK-arcmin  beam={beamFWHM}'  ellmax={ellmax}")
 print(f"  N_sims={N_sims}  N_iter={N_iter}  CG_tol={CG_tol}  CG_maxiter={CG_maxiter}")
 print(f"{'='*60}\n")
 
-# ── Cls (from export_julia_cls.jl) ────────────────────────────────────────────
+# Cls (from export_julia_cls.jl)
 _julia_cls = 'results/lensit/julia_cls.npz'
 assert os.path.exists(_julia_cls), f"Missing {_julia_cls} — run julia export_julia_cls.jl"
 _d = np.load(_julia_cls)
@@ -92,7 +92,7 @@ cls_len  = {'tt': cl_tt_len, 'ee': np.zeros(ellmax+1), 'bb': np.zeros(ellmax+1),
 cl_transf = gauss_beam(beamFWHM / 60. * np.pi / 180., lmax=ellmax)
 cls_noise = {'t': (NlevT * np.pi / (180. * 60.))**2 * np.ones(ellmax + 1)}
 
-# ── LensIt flat-sky patch ──────────────────────────────────────────────────────
+# LensIt flat-sky patch
 print("Building LensIt patch/filter libraries ...")
 ellmat_obj = get_ellmat(LD_res, HD_res=HD_res)
 lib_alm    = ffs_alm_pyFFTW(ellmat_obj,
@@ -117,7 +117,7 @@ _N0 = N0_unl[:lib_qlm.ellmax + 1]
 H0_diag = cli(_N0)  # likelihood curvature = 1/N0_unl (standard lensit convention)
 print(f"  N0_unl max={N0_unl.max():.4e}  N0_len max={N0_len.max():.4e}  H0_diag max={H0_diag.max():.4e}")
 
-# ── Simulation libraries ───────────────────────────────────────────────────────
+# Simulation libraries
 print("Building simulation libraries ...")
 lib_lencmb = ffs_cmbs.sims_cmb_len(
     os.path.join(lib_dir_sims, 'lencmbs'), lib_alm, cls_unl, cache_lens=True)
@@ -125,7 +125,7 @@ lib_sims   = ffs_maps.lib_noisemap(
     os.path.join(lib_dir_sims, 'maps'),
     lib_alm, lib_lencmb, cl_transf, nTpix, nTpix, nTpix)
 
-# ── Iterator filter + CG chain ─────────────────────────────────────────────────
+# Iterator filter + CG chain
 f_id = ffs_deflect.ffs_id_displacement(lib_alm.shape, lib_alm.lsides)
 filt_ideal  = ffs_ninv_filt_ideal_nufft.ffs_ninv_filt_wl(
     lib_alm, lib_alm, cls_unl, cl_transf, NlevT, nlev_p=1e6, f=f_id)
@@ -134,7 +134,7 @@ chain_descr = chain_samples.get_isomgchain(
     tol=CG_tol, iter_max=CG_maxiter)
 opfilt_cinv._type = 'T'
 
-# ── Spectral binning ──────────────────────────────────────────────────────────
+# Spectral binning
 edges   = np.arange(ellmin, ellmax + 1, Δℓ)
 ell_lo, ell_hi = edges[:-1], edges[1:]
 ell_mid = 0.5 * (ell_lo + ell_hi)
@@ -155,7 +155,7 @@ def cross_cl_binned(m1, m2):
         out[i] = cross[msk].mean() if msk.any() else 0.
     return out
 
-# ── JLD2-compatible HDF5 helpers ──────────────────────────────────────────────
+# JLD2-compatible HDF5 helpers
 _JLD2_MAGIC     = b"HDF5-based Julia Data Format, version 0.1.1"
 _JLD2_USERBLOCK = _JLD2_MAGIC + b'\x00' * (512 - len(_JLD2_MAGIC))
 
@@ -182,7 +182,7 @@ def h5_save_wl(filename, data):
             if v is not None:
                 f.create_dataset(k, data=np.asarray(v, dtype=np.float64))
 
-# ── Resume checkpoint ─────────────────────────────────────────────────────────
+# Resume checkpoint
 R_mj_sims    = []
 sum_R_qe_raw = np.zeros(nbins)
 nsims_done   = 0
@@ -193,7 +193,7 @@ if os.path.exists(ckpt_file):
     nsims_done   = int(d['nsims_done'])
     print(f"Resumed: {nsims_done}/{N_sims} sims done")
 
-# ── Main loop ─────────────────────────────────────────────────────────────────
+# Main loop
 for idx in range(nsims_done, N_sims):
     sim_key = f'sim_{idx+1}'
     t_wall = time.strftime('%H:%M:%S')
