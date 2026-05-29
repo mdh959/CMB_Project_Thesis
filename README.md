@@ -26,7 +26,6 @@ An independent cross-check uses [LensIt](https://github.com/carronj/LensIt) (Pyt
 │   ├── gradient_inversion.jl    GI estimator variants + N0 estimators
 │   ├── debias.jl                W_L transfer-function debiasing
 │   ├── spectra.jl               spectrum binning utilities
-│   ├── normalization.jl         empirical W_L (legacy helper)
 │   ├── io.jl                    JLD2 I/O helpers
 │   └── plotting.jl              shared plotting utilities
 ├── results/                     committed key figures and SNR table
@@ -157,4 +156,4 @@ The fg-MC and lin-RD estimates are used together as the primary debiasing strate
 
 ## Reference
 
-Hadzhiyska, B. et al. (2019), *Improving lensing cluster mass estimates with a new member galaxy photometric redshift method*, MNRAS — gradient-inversion estimator, normalization, and survey parameters used in this work.
+Hadzhiyska, B., Sherwin, B. D., Madhavacheril, M., and Ferraro, S. (2019), *Improving small-scale CMB lensing reconstruction*, Phys. Rev. D **100**, 023547. [doi:10.1103/PhysRevD.100.023547](https://link.aps.org/doi/10.1103/PhysRevD.100.023547) — gradient-inversion estimator, normalisation, and survey parameters used in this work.
