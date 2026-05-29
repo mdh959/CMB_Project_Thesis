@@ -6,7 +6,7 @@ Compares three CMB lensing reconstruction methods at ultra-low noise (0.1 µK-ar
 
 - **Quadratic Estimator (QE)** — standard harmonic-space minimum-variance estimator
 - **Gradient Inversion (GI)** — real-space estimator based on Hadzhiyska et al. (2019)
-- **Joint MAP** — iterative maximum-a-posteriori reconstruction via `MAP_joint` in CMBLensing.jl
+- **Joint MAP** — iterative maximum-a-posteriori reconstruction via `MAP_joint` in [CMBLensing.jl](https://github.com/marius311/CMBLensing.jl)
 
 An independent cross-check uses [LensIt](https://github.com/carronj/LensIt) (Python) for QE and MAP on the same simulations.
 
@@ -122,7 +122,7 @@ All simulations use `seed = 1000 + sim_index` (Julia) and `idx` (LensIt, 0-index
 
 ### QE RDN0
 
-The QE realisation-dependent N0 is computed via `N0_bias` from CMBLensing.jl (built-in). It uses the standard DD–DS–SD+SS combination to achieve O(ε²) bias in per-realization power mismatch.
+The QE realisation-dependent N0 is computed via `N0_bias`, developed by Louis Legrand as part of [this CMBLensing.jl fork](https://github.com/louisl3grand/CMBLensing.jl/blob/master/RDN0_bias_QE.ipynb). It uses the standard DD–DS–SD+SS combination to achieve O(ε²) bias in per-realisation power mismatch.
 
 ### GI N0 methods
 
@@ -168,4 +168,4 @@ Lewis, A., Challinor, A., and Lasenby, A. (2000), *Efficient Normal Form Decompo
 
 ## AI use declaration
 
-The AI assistant Claude (Anthropic) was used during the development of this codebase to assist with code editing, debugging, and documentation. All research design, scientific methodology, algorithm implementation, and analysis are the author's own work. No AI tool was used to generate scientific results or conclusions.
+The AI assistant Claude was used during the development of this codebase to assist with code editing, debugging, and documentation. All research design, scientific methodology, algorithm implementation, and analysis are the author's own work. No AI tool was used to generate scientific results or conclusions.
