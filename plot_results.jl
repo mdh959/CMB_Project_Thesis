@@ -684,9 +684,9 @@ let
         for ci in 2:ncols; getax(ci - 1).sharey(getax(0)); end
     end
 
-    fig.savefig("$OUT_DIR/mean_cross_spectra.png"; dpi=200)
+    fig.savefig("$OUT_DIR/mean_spectra.png"; dpi=200)
     PythonPlot.plotclose("all")
-    println("Saved mean_cross_spectra.png")
+    println("Saved mean_spectra.png")
 end
 
 # Fig 3: cross σ panels with LensIt comparison
