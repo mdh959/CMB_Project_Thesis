@@ -162,6 +162,9 @@ The fg-MC and lin-RD estimates are used together as the primary debiasing strate
 | `results/WL_empirical.pdf` | Empirical transfer functions W_L |
 | `results/rho_L.pdf` | Correlation coefficient ρ_L vs L |
 | `results/covariance_correlation.png` | Bandpower covariance and correlation matrices |
+| `results/cross_correlation_matrices.pdf` | Bandpower cross-correlation matrices |
+| `results/cross_sigma_cov.pdf` | σ(C_L) cross-spectrum covariance |
+| `results/gi_auto_linrd_covariance.png` | GI auto-spectrum covariance (lin-RD debiased) |
 | `results/map_convergence.pdf` | MAP log-posterior convergence |
 | `results/snr_table.txt` | SNR summary table (L = 4000–12000) |
 
