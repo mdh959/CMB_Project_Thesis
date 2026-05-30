@@ -585,8 +585,6 @@ s4 = process_noise_level(
     map_phi_file = isfile("results/phi_maps_map_12000.jld2") ? "results/phi_maps_map_12000.jld2" : nothing,
     snr_L_lo=4000.0, snr_L_hi=12000.0,
     xlim_plot=(5000.0, 11000.0),
-    exclude_sims=Set([661]),
-    map_exclude_sims=Set([19, 20, 51, 74, 85, 86, 87, 93, 102, 105]),
     gi_rms_outliers=true,
     qe_snr_use_all=true)
 
@@ -603,8 +601,6 @@ ul = ul_files_exist ? process_noise_level(
     map_phi_file = _ul_map_phi,
     snr_L_lo=4000.0, snr_L_hi=12000.0,
     xlim_plot=(5000.0, 11000.0),
-    exclude_sims=Set([121, 661, 1916]),
-    map_exclude_sims=Set([38, 39, 202]),
     linrd_also_subtract_fgmc=true) : nothing
 
 lensit_ul = let
@@ -688,9 +684,9 @@ let
         for ci in 2:ncols; getax(ci - 1).sharey(getax(0)); end
     end
 
-    fig.savefig("$OUT_DIR/fig2_mean_spectra.png"; dpi=200)
+    fig.savefig("$OUT_DIR/mean_cross_spectra.png"; dpi=200)
     PythonPlot.plotclose("all")
-    println("Saved fig2_mean_spectra.png")
+    println("Saved mean_cross_spectra.png")
 end
 
 # Fig 3: cross σ panels with LensIt comparison
@@ -755,10 +751,10 @@ let
         getax(ci - 1).tick_params(labelleft=false)
     end
 
-    fig.savefig("$OUT_DIR/fig3_sigma_panels.png"; dpi=200, bbox_inches="tight")
-    fig.savefig("$OUT_DIR/fig3_sigma_panels.pdf"; bbox_inches="tight")
+    fig.savefig("$OUT_DIR/lensit_sigma_cross.png"; dpi=200, bbox_inches="tight")
+    fig.savefig("$OUT_DIR/lensit_sigma_cross.pdf"; bbox_inches="tight")
     PythonPlot.plotclose("all")
-    println("Saved fig3_sigma_panels.png/.pdf")
+    println("Saved lensit_sigma_cross.png/.pdf")
 end
 
 # Fig WL: transfer functions
@@ -823,10 +819,10 @@ let
         ci == ncols && ax.legend(frameon=false, fontsize=FS-1, loc="lower left")
     end
 
-    fig.savefig("$OUT_DIR/fig_WL.png"; dpi=300, bbox_inches="tight")
-    fig.savefig("$OUT_DIR/fig_WL.pdf"; bbox_inches="tight")
+    fig.savefig("$OUT_DIR/WL_empirical.png"; dpi=300, bbox_inches="tight")
+    fig.savefig("$OUT_DIR/WL_empirical.pdf"; bbox_inches="tight")
     PythonPlot.plotclose("all")
-    println("Saved fig_WL.png + .pdf")
+    println("Saved WL_empirical.png + .pdf")
 end
 
 # Fig 6: ρ_L correlation coefficient
@@ -860,10 +856,10 @@ let
         ci == ncols && ax.legend(frameon=false, fontsize=FS-1, loc="lower left")
     end
 
-    fig.savefig("$OUT_DIR/fig6_rho_L.png"; dpi=200)
-    fig.savefig("$OUT_DIR/fig6_rho_L.pdf")
+    fig.savefig("$OUT_DIR/rho_L.png"; dpi=200)
+    fig.savefig("$OUT_DIR/rho_L.pdf")
     PythonPlot.plotclose("all")
-    println("Saved fig6_rho_L.png + .pdf")
+    println("Saved rho_L.png + .pdf")
 end
 
 # Fig: covariance / correlation matrices
@@ -999,9 +995,9 @@ let
             end
         end
     end
-    fig.savefig("$OUT_DIR/fig_covariance_correlation.png"; dpi=200)
+    fig.savefig("$OUT_DIR/covariance_correlation.png"; dpi=200)
     PythonPlot.plotclose("all")
-    println("Saved fig_covariance_correlation.png")
+    println("Saved covariance_correlation.png")
 end
 
 # Fig C: MAP convergence
@@ -1062,10 +1058,10 @@ let
             ax.legend(frameon=false, fontsize=FS-2, loc="lower right")
         end
 
-        fig.savefig("$OUT_DIR/figC_map_convergence.png"; dpi=200, bbox_inches="tight")
-        fig.savefig("$OUT_DIR/figC_map_convergence.pdf"; bbox_inches="tight")
+        fig.savefig("$OUT_DIR/map_convergence.png"; dpi=200, bbox_inches="tight")
+        fig.savefig("$OUT_DIR/map_convergence.pdf"; bbox_inches="tight")
         PythonPlot.plotclose("all")
-        println("Saved figC_map_convergence.png + .pdf")
+        println("Saved map_convergence.png + .pdf")
     end
 end
 

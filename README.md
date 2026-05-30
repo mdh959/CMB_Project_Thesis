@@ -30,9 +30,7 @@ An independent cross-check uses [LensIt](https://github.com/carronj/LensIt) (Pyt
 │   ├── gradient.jl              FFT gradient helper
 │   ├── gradient_inversion.jl    GI estimator variants + N0 estimators
 │   ├── debias.jl                W_L transfer-function debiasing
-│   ├── spectra.jl               spectrum binning utilities
-│   ├── io.jl                    JLD2 I/O helpers
-│   └── plotting.jl              shared plotting utilities
+│   └── spectra.jl               spectrum binning utilities
 ├── results/                     committed key figures and SNR table
 └── Project.toml                 Julia package dependencies
 ```
@@ -160,11 +158,11 @@ The fg-MC and lin-RD estimates are used together as the primary debiasing strate
 | File | Description |
 |------|-------------|
 | `results/kappa_maps_ul.pdf` | κ reconstruction maps — GI, QE, MAP, ∇T, true |
-| `results/fig3_sigma_panels.png` | σ(C_L) auto and cross, S4-like and UL |
-| `results/fig_WL.pdf` | Empirical transfer functions W_L |
-| `results/fig6_rho_L.pdf` | Correlation coefficient ρ_L vs L |
-| `results/fig_covariance_correlation.png` | Bandpower covariance and correlation matrices |
-| `results/figC_map_convergence.pdf` | MAP log-posterior convergence |
+| `results/lensit_sigma_cross.png` | σ(C_L) cross spectra with LensIt comparison |
+| `results/WL_empirical.pdf` | Empirical transfer functions W_L |
+| `results/rho_L.pdf` | Correlation coefficient ρ_L vs L |
+| `results/covariance_correlation.png` | Bandpower covariance and correlation matrices |
+| `results/map_convergence.pdf` | MAP log-posterior convergence |
 | `results/snr_table.txt` | SNR summary table (L = 4000–12000) |
 
 ---

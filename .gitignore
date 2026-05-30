@@ -22,7 +22,7 @@ data/*.npz
 results/lensit/
 results/*.jld2
 
-# Keep committed key figures and table
-!results/fig*.pdf
-!results/fig*.png
+# Keep committed figures and table
+!results/*.pdf
+!results/*.png
 !results/snr_table.txt
