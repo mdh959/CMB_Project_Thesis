@@ -106,11 +106,6 @@ N0_unl = isocov.get_N0cls('T', lib_qlm, use_cls_len=False)[0]
 N0_len = isocov.get_N0cls('T', lib_qlm, use_cls_len=True)[0]
 cpp    = cl_pp[:lib_qlm.ellmax + 1]
 
-def cli(cl):
-    r = np.zeros_like(cl, dtype=float)
-    r[cl > 0] = 1. / cl[cl > 0]
-    return r
-
 # For S4 (noise-dominated), use lensed N0 for the MAP initial Hessian:
 # H0 = (C_ϕ⁻¹ + N0_len⁻¹)⁻¹ = N0_len·Cpp/(N0_len+Cpp)
 _N0 = N0_len[:lib_qlm.ellmax + 1]
@@ -197,7 +192,7 @@ if os.path.exists(ckpt_file):
 for idx in range(nsims_done, N_sims):
     sim_key = f'sim_{idx+1}'
     t_wall = time.strftime('%H:%M:%S')
-    print(f"\n{'─'*50}", flush=True)
+    print(f"\n{'-'*50}", flush=True)
     print(f"  Sim {idx+1}/{N_sims}  [{t_wall}]", flush=True)
 
     try:

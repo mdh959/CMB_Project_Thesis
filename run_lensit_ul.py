@@ -197,7 +197,7 @@ if os.path.exists(ckpt_file):
 for idx in range(nsims_done, N_sims):
     sim_key = f'sim_{idx+1}'
     t_wall = time.strftime('%H:%M:%S')
-    print(f"\n{'─'*50}", flush=True)
+    print(f"\n{'-'*50}", flush=True)
     print(f"  Sim {idx+1}/{N_sims}  [{t_wall}]", flush=True)
 
     try:
@@ -279,11 +279,11 @@ for idx in range(nsims_done, N_sims):
                 print(f"  it={it:3d}/{N_iter}  grad={grad_ratio:.5f}  best={best_grad:.5f}@it{best_it}"
                       f"{ni_str}{sl_str}  dt={dt:.0f}s  ETA:{eta_sim}(sim)/{eta_total}(all)", flush=True)
                 if best_grad < GRAD_CONV:
-                    print(f"  ✓ CONVERGED (grad < {GRAD_CONV})", flush=True)
+                    print(f"  CONVERGED (grad < {GRAD_CONV})", flush=True)
                     break
                 # Early stop if gradient growing after already converging well
                 if it >= 4 and grad_ratio > 2.0 * best_grad and best_grad < 1.0:
-                    print(f"  ✗ DIVERGING (grad={grad_ratio:.4f} > 2×best={best_grad:.4f}), stopping at best_it={best_it}", flush=True)
+                    print(f"  DIVERGING (grad={grad_ratio:.4f} > 2x best={best_grad:.4f}), stopping at best_it={best_it}", flush=True)
                     break
             else:
                 print(f"  it={it:3d}/{N_iter}  (spike/nan)  dt={dt:.0f}s  ETA:{eta_sim}(sim)/{eta_total}(all)", flush=True)
@@ -332,7 +332,7 @@ for idx in range(nsims_done, N_sims):
 
     except Exception as e:
         import traceback
-        print(f"  ✗ SIM {idx+1} CRASHED — skipping\n{traceback.format_exc()}", flush=True)
+        print(f"  SIM {idx+1} CRASHED — skipping\n{traceback.format_exc()}", flush=True)
 
 print(f"\nDone! {nsims_done}/{N_sims} sims.")
 print(f"  WL:  {wl_file}")

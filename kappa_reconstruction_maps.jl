@@ -113,7 +113,7 @@ const ℓx2D, ℓy2D, ℓ2d  = make_ellxy_grid_rfft(Nside, θpix_rad)
 function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
                    μKarcminT::Float64, beamFWHM::Float64, out_file;
                    seed::Int=TARGET_SEED)
-    println("\n── $(basename(out_file)) ──")
+    println("\n$(basename(out_file))")
     isfile(qegi_file)    || (println("  SKIP: $qegi_file not found");    return)
     isfile(map_file)     || (println("  SKIP: $map_file not found");     return)
     isfile(wl_qegi_file) || (println("  SKIP: $wl_qegi_file not found"); return)

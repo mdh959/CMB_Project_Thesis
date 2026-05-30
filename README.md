@@ -158,6 +158,7 @@ The fg-MC and lin-RD estimates are used together as the primary debiasing strate
 | File | Description |
 |------|-------------|
 | `results/kappa_maps_ul.pdf` | κ reconstruction maps — GI, QE, MAP, ∇T, true |
+| `results/mean_spectra.png` | Mean cross spectra — QE, GI, MAP vs theory |
 | `results/lensit_sigma_cross.png` | σ(C_L) cross spectra with LensIt comparison |
 | `results/WL_empirical.pdf` | Empirical transfer functions W_L |
 | `results/rho_L.pdf` | Correlation coefficient ρ_L vs L |
