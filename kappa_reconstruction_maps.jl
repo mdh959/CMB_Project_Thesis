@@ -119,7 +119,6 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     isfile(wl_qegi_file) || (println("  SKIP: $wl_qegi_file not found"); return)
     isfile(wl_map_file)  || (println("  SKIP: $wl_map_file not found");  return)
 
-    # Load WL
     println("  Loading WL files...")
     d_wl_qegi = JLD2.load(wl_qegi_file)
     d_wl_map  = JLD2.load(wl_map_file)
@@ -132,7 +131,6 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     WL_qe  = Cℓs(ell_gi,  smooth_1d(W_qe_raw))
     WL_map = Cℓs(ell_map, smooth_1d(Float64.(d_wl_map["W_mj"])))
 
-    # Load ϕ arrays
     println("  Loading ϕ arrays (seed=$seed)...")
     ϕ_true_arr = ϕ_gi_arr = ϕ_qe_arr = ϕ_map_arr = nothing
     jldopen(qegi_file, "r") do f
@@ -158,7 +156,6 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     ϕ_true_arr === nothing && error("seed $seed not found in $qegi_file")
     ϕ_map_arr  === nothing && error("seed $seed not found in $map_file")
 
-    # Reload simulation
     println("  Reloading simulation (μK=$μKarcminT, beam=$beamFWHM)...")
     Cℓn = noiseCℓs(μKarcminT=μKarcminT, ℓknee=0, ℓmax=Lmax)
     (; ϕ, ds) = load_sim(seed=seed, Cℓ=Cℓ_cam, Cℓn=Cℓn,
@@ -223,7 +220,6 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     N0_map = Cℓs(Cpp_spec.ℓ, smooth_1d(max.(n0_map_sum ./ n0_map_cnt, 1e-60)))
     println("  N0_gi: $n0_gi_cnt sims, N0_qe: $n0_qe_cnt sims, N0_map: $n0_map_cnt sims")
 
-    # Wiener-filter and gradient
     println("  Wiener-filtering all maps...")
     κ_true = bandpass_kappa(ϕ_true_arr, ℓ2d)
     κ_gi   = wiener_kappa(ϕ_gi_arr,   ℓ2d, Cpp_spec, N0_gi;  WL=WL_gi)
@@ -231,7 +227,6 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     κ_map  = wiener_kappa(ϕ_map_arr,  ℓ2d, Cpp_spec, N0_map; WL=WL_map)
     gmag   = grad_mag(ds.d, ℓx2D, ℓy2D)
 
-    # Choose patch
     rows, cols = best_grad_patch(gmag, Np)
     patch_deg  = Np * θpix / 60
     r0_d = (first(rows)-1) * θpix / 60;  r1_d = last(rows)  * θpix / 60
@@ -248,14 +243,12 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     @printf("  Patch %.2f×%.2f deg | ρ_GI=%.3f  ρ_QE=%.3f  ρ_MAP=%.3f\n",
             patch_deg, patch_deg, ρ_gi, ρ_qe, ρ_map)
 
-    # Figure
     PythonPlot.rc("font",     family="serif", size=11)
     PythonPlot.rc("axes",     linewidth=0.6)
     PythonPlot.rc("xtick",    direction="in", top=true,   labelsize=9)
     PythonPlot.rc("ytick",    direction="in", right=true, labelsize=9)
     PythonPlot.rc("mathtext", fontset="cm")
 
-    # Layout geometry
     _L=0.07; _R=0.87; _T=0.95; _B=0.16; _hs=0.18; _ws=0.06
     _pw = (_R-_L) / (3 + 2*_ws)
     _ph = (_T-_B) / (2 +   _hs)
@@ -308,7 +301,6 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     axs[1,1].set_xlabel("RA (deg)"; fontsize=11)
     axs[1,1].tick_params(labelleft=false)
 
-    # Colorbars
     _cbw = 0.018; _gap = 0.012
     pos_c = axs[0,2].get_position()
     pos_d = axs[1,0].get_position()
@@ -330,7 +322,6 @@ function make_fig1(qegi_file, wl_qegi_file, map_file, wl_map_file,
     cb_κ.ax.set_xticklabels([@sprintf("%.2g", -vm_κ), "0", @sprintf("%.2g", vm_κ)])
     cb_κ.ax.tick_params(labelsize=11)
 
-    # Save
     mkpath(OUT_DIR)
     fig.savefig(out_file; dpi=200)
     println("  Saved → $out_file")

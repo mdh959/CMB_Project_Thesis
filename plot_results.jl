@@ -651,7 +651,7 @@ function set_log_ticks(ax, ymin, ymax)
     ax.yaxis.set_major_formatter(ticker.LogFormatterMathtext())
 end
 
-# Fig 2: mean cross spectrum
+# mean cross spectrum
 let
     ncols = length(datasets)
     fig, axs = PythonPlot.subplots(1, ncols;
@@ -689,7 +689,7 @@ let
     println("Saved mean_spectra.png")
 end
 
-# Fig 3: cross σ panels with LensIt comparison
+# cross σ panels with LensIt comparison
 let
     ncols = length(datasets)
     fig, axs = PythonPlot.subplots(1, ncols;
@@ -757,7 +757,7 @@ let
     println("Saved lensit_sigma_cross.png/.pdf")
 end
 
-# Fig WL: transfer functions
+# empirical transfer functions W_L
 let
     FS = 11
     panel_titles = ["CMB-S4-like", "Ultra-Low-noise"]
@@ -825,7 +825,7 @@ let
     println("Saved WL_empirical.png + .pdf")
 end
 
-# Fig 6: ρ_L correlation coefficient
+# ρ_L correlation coefficient
 let
     FS = 11
     panel_titles = ["CMB-S4-like", "Ultra-Low-noise"]
@@ -862,7 +862,7 @@ let
     println("Saved rho_L.png + .pdf")
 end
 
-# Fig: covariance / correlation matrices
+# bandpower covariance / correlation matrices
 function corr_matrix(B::Matrix)
     nb, ns = size(B); ns < 3 && return fill(NaN, nb, nb)
     Ac = B .- mean(B; dims=2)
@@ -1000,7 +1000,7 @@ let
     println("Saved covariance_correlation.png")
 end
 
-# Fig C: MAP convergence
+# MAP log-posterior convergence
 let
     map_entries = [
         ("CMB-S4-like",     "results/WL_map_12000.jld2",              40),
