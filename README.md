@@ -162,7 +162,6 @@ The fg-MC and lin-RD estimates are used together as the primary debiasing strate
 | `results/lensit_sigma_cross.png` | σ(C_L) cross spectra with LensIt comparison |
 | `results/WL_empirical.pdf` | Empirical transfer functions W_L |
 | `results/rho_L.pdf` | Correlation coefficient ρ_L vs L |
-| `results/cross_correlation_matrices.png` | Bandpower covariance and correlation matrices |
 | `results/cross_correlation_matrices.pdf` | Bandpower cross-correlation matrices |
 | `results/cross_sigma_cov.pdf` | σ(C_L) cross-spectrum covariance |
 | `results/gi_auto_linrd_covariance.png` | GI auto-spectrum covariance (lin-RD debiased) |
